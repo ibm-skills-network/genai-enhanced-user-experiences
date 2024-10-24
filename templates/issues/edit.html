@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="mb-4">Edit Issue</h1>
+<form method="POST">
+    <div class="mb-3">
+        <label for="title" class="form-label">Title</label>
+        <input type="text" class="form-control" id="title" name="title" value="{{ issue.title }}" required>
+    </div>
+    <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <textarea class="form-control" id="description" name="description" rows="3" required>{{ issue.description }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label for="status" class="form-label">Status</label>
+        <select class="form-select" id="status" name="status" required>
+            <option value="Open" {% if issue.status == 'Open' %}selected{% endif %}>Open</option>
+            <option value="In Progress" {% if issue.status == 'In Progress' %}selected{% endif %}>In Progress</option>
+            <option value="Closed" {% if issue.status == 'Closed' %}selected{% endif %}>Closed</option>
+        </select>
+    </div>
+    {% if issue.__class__.__name__ == 'Bug' %}
+    <div class="mb-3">
+        <label for="severity" class="form-label">Severity</label>
+        <select class="form-select" id="severity" name="severity">
+            <option value="Low" {% if issue.severity == 'Low' %}selected{% endif %}>Low</option>
+            <option value="Medium" {% if issue.severity == 'Medium' %}selected{% endif %}>Medium</option>
+            <option value="High" {% if issue.severity == 'High' %}selected{% endif %}>High</option>
+            <option value="Critical" {% if issue.severity == 'Critical' %}selected{% endif %}>Critical</option>
+        </select>
+    </div>
+    {% endif %}
+    {% if issue.__class__.__name__ != 'Epic' %}
+    <div class="mb-3">
+        <label for="epic_id" class="form-label">Epic</label>
+        <select class="form-select" id="epic_id" name="epic_id">
+            <option value="">None</option>
+            {% for epic in epics %}
+            <option value="{{ epic.id }}" {% if epic.id == issue.epic_id %}selected{% endif %}>{{ epic.title }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    {% endif %}
+    <button type="submit" class="btn btn-primary">Update Issue</button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,65 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="mb-4">Create New Issue</h1>
+<form method="POST" action="{{ url_for('create_issue') }}" id="create-issue-form">
+    <div class="mb-3">
+        <label for="issue_type" class="form-label">Issue Type</label>
+        <select class="form-select" id="issue_type" name="issue_type" required>
+            <option value="story">Story</option>
+            <option value="bug">Bug</option>
+            <option value="epic">Epic</option>
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="title" class="form-label">Title</label>
+        <input type="text" class="form-control" id="title" name="title" required>
+    </div>
+    <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+    </div>
+    <div id="bug_fields" class="mb-3" style="display: none;">
+        <label for="severity" class="form-label">Severity</label>
+        <select class="form-select" id="severity" name="severity">
+            <option value="Low">Low</option>
+            <option value="Medium">Medium</option>
+            <option value="High">High</option>
+            <option value="Critical">Critical</option>
+        </select>
+    </div>
+    <div id="epic_fields" class="mb-3" style="display: none;">
+        <label for="epic_id" class="form-label">Epic</label>
+        <select class="form-select" id="epic_id" name="epic_id">
+            <option value="">None</option>
+            {% for epic in epics %}
+            <option value="{{ epic.id }}">{{ epic.title }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">Create Issue</button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const issueTypeSelect = document.getElementById('issue_type');
+    const bugFields = document.getElementById('bug_fields');
+    const epicFields = document.getElementById('epic_fields');
+
+    issueTypeSelect.addEventListener('change', function() {
+        if (this.value === 'bug') {
+            bugFields.style.display = 'block';
+            epicFields.style.display = 'block';
+        } else if (this.value === 'story') {
+            bugFields.style.display = 'none';
+            epicFields.style.display = 'block';
+        } else {
+            bugFields.style.display = 'none';
+            epicFields.style.display = 'none';
+        }
+    });
+});
+</script>
+{% endblock %}

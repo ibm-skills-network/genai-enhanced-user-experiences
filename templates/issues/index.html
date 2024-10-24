@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="mb-4">Project Management System</h1>
+
+<div class="mb-4">
+    <h2>Search Issues</h2>
+    <form action="{{ url_for('index_issues') }}" method="GET" class="row g-3">
+        <div class="col-md-8">
+            <input type="text" name="query" class="form-control" placeholder="Search..." value="{{ search_query if search_query is not none else '' }}">
+        </div>
+        <div class="col-md-2">
+            <button type="submit" class="btn btn-primary">Search</button>
+        </div>
+    </form>
+</div>
+
+<h2 class="mb-3">All Issues</h2>
+<div class="row">
+    {% for issue in issues %}
+        {% include 'issues/card.html' %}
+    {% endfor %}
+</div>
+
+{% if not issues %}
+    <p class="alert alert-warning">No issues found.</p>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% endblock %}

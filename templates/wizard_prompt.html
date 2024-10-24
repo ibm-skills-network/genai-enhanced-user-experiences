@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="mb-4">Let Me Jira That For You</h1>
+
+<!-- Form to input prompt -->
+<div class="mb-3">
+    <label for="prompt" class="form-label">Enter your prompt</label>
+    <textarea class="form-control" id="prompt" name="prompt" rows="3" required></textarea>
+</div>
+
+<!-- The generated link -->
+<div class="mb-3">
+    <label for="generated-link" class="form-label">Generated Link</label>
+    <input type="text" class="form-control" id="generated-link" readonly>
+</div>
+
+<!-- Copy to clipboard button -->
+<button class="btn btn-primary" id="copy-button" onclick="copyToClipboard()">Copy Link</button>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Update the generated link when the prompt changes
+    document.getElementById('prompt').addEventListener('input', function() {
+        const promptText = encodeURIComponent(this.value.trim());
+        const generatedLink = `${window.location.origin}/wizard?action=${promptText}`;
+        document.getElementById('generated-link').value = generatedLink;
+    });
+
+    // Copy the generated link to the clipboard
+    function copyToClipboard() {
+        const linkInput = document.getElementById('generated-link');
+        linkInput.select();
+        linkInput.setSelectionRange(0, 99999);  // For mobile devices
+        document.execCommand('copy');  // Copy the link
+        alert("Copied the link: " + linkInput.value);  // Show confirmation alert
+    }
+</script>
+{% endblock %}

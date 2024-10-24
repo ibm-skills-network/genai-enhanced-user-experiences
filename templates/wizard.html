@@ -1,0 +1,152 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h1 class="mb-4">Let Me Jira That For You</h1>
+
+<div id="loading-spinner" class="spinner-border text-primary" role="status">
+    <span class="visually-hidden">Loading...</span>
+</div>
+
+<div id="content-wrapper" style="display: none;">
+    <h2>Suggestions for: "{{ prompt }}"</h2>
+    <div class="row" id="generated-changes-container">
+        <!-- this is where the suggestions will be injected -->
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        fetchSuggestions();  // page loads immediately, spinner is shown, content-wrapper is hidden
+    });
+
+    function fetchSuggestions() {
+        const action = "{{ prompt }}";  // dynamically set this
+        const url = `/wizard_suggestions?action=${encodeURIComponent(action)}`;  // backend endpoint to fetch suggestions
+        
+        fetch(url).then(response => response.json())
+        .then(data => {
+            if (data.diffs) {
+                const diffsByIssue = groupDiffsByIssue(data.diffs);
+                renderSuggestions(diffsByIssue);
+            } else {
+                alert('Failed to load suggestions.');
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching suggestions:', error);
+            alert('An error occurred while fetching the suggestions.');
+        });
+    }
+
+    function groupDiffsByIssue(diffs) {
+        const diffsByIssue = {};
+        diffs.forEach(diff => {
+            if (!diffsByIssue[diff.id]) {
+                diffsByIssue[diff.id] = {
+                    title: diff.title || 'Untitled Issue',
+                    type: diff.type,
+                    fields: []
+                };
+            }
+            diffsByIssue[diff.id].fields.push(diff);
+        });
+        return diffsByIssue;
+    }
+
+    function renderSuggestions(diffsByIssue) {
+        const container = document.getElementById('generated-changes-container');
+        container.innerHTML = '';  // clear any existing content
+        
+        for (const issueId in diffsByIssue) {
+            const issue = diffsByIssue[issueId];
+            
+            // Build the fields HTML and escape it properly
+            const fieldsHtml = issue.fields.map(field => `
+                <p class="card-text">
+                    <strong>Current ${field.field}:</strong> ${field.current}<br>
+                    <strong>Proposed ${field.field}:</strong> ${field.proposed}
+                </p>
+            `).join('');
+
+            // Determine border color based on issue type
+            let borderColorClass;
+            if (issue.type === 'story') {
+                borderColorClass = 'border-info';  // light blue for stories
+            } else if (issue.type === 'bug') {
+                borderColorClass = 'border-danger';  // red for bugs
+            } else if (issue.type === 'epic') {
+                borderColorClass = 'border-primary';  // dark blue for epics
+            } else {
+                borderColorClass = 'border-secondary';  // fallback gray border
+            }
+
+            // Create the card
+            const card = document.createElement('div');
+            card.classList.add('col-md-4', 'mb-3');
+
+            // Safely stringify fields for the onclick handler
+            card.innerHTML = `
+                <div class="card ${borderColorClass}" style="border-width: 2px;">
+                    <div class="card-body">
+                        <h5 class="card-title">
+                            <a href="/issues/${issueId}" target="_blank">${issue.title}</a>
+                        </h5>
+                        ${fieldsHtml}
+                        <button class="btn btn-success me-2" onclick='applyChanges("${issueId}", ${JSON.stringify(issue.fields)}, "accept", this)'>Accept</button>
+                        <button class="btn btn-danger" onclick='applyChanges("${issueId}", ${JSON.stringify(issue.fields)}, "reject", this)'>Reject</button>
+                    </div>
+                </div>
+            `;
+            container.appendChild(card);
+        }
+
+        document.getElementById('loading-spinner').style.display = 'none';  // hide spinner
+        document.getElementById('content-wrapper').style.display = 'block';  // show content
+    }
+
+    function applyChanges(issueId, fields, action, buttonElement) {
+        if (action === 'reject') {
+            // just remove the buttons, no need to contact server
+            buttonElement.parentElement.querySelector('.btn-success').remove();  // remove accept button
+            buttonElement.remove();  // remove reject button
+            return;
+        }
+
+        console.log('Applying changes for issue:', { issueId, fields });
+
+        // Prepare the fields for the AJAX request
+        const fieldData = fields.map(field => ({
+            name: field.field,
+            current: field.current,
+            proposed: field.proposed
+        }));
+
+        // AJAX request to apply all changes for the issue
+        fetch('/wizard/apply', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                form_data: {
+                    issue_id: issueId,
+                    fields: fieldData
+                }
+            })
+        }).then(response => response.json())
+          .then(data => {
+              if (data.message) {
+                  alert('Changes applied successfully!');
+                  // optionally disable or hide the buttons here after successful application
+                  buttonElement.parentElement.querySelector('.btn-danger').remove();  // remove reject button
+                  buttonElement.remove();  // remove accept button
+              } else {
+                  alert('Failed to apply the changes.');
+              }
+          }).catch(error => {
+              console.error('Error:', error);
+              alert('An error occurred.');
+          });
+    }
+</script>
+{% endblock %}

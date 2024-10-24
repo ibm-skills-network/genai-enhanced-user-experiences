@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}{% if issue %}Edit Issue{% else %}New Issue{% endif %}{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">{% if issue %}Edit Issue{% else %}New Issue{% endif %}</h1>
+<form method="POST">
+    <div class="mb-3">
+        <label for="title" class="form-label">Title</label>
+        <input type="text" class="form-control" id="title" name="title" required value="{{ issue.title if issue else '' }}">
+    </div>
+    <div class="mb-3">
+        <label for="description" class="form-label">Description</label>
+        <textarea class="form-control" id="description" name="description" rows="3" required>{{ issue.description if issue else '' }}</textarea>
+    </div>
+    <div class="mb-3">
+        <label for="status" class="form-label">Status</label>
+        <select class="form-select" id="status" name="status" required>
+            {% for value, label in Issue.STATUS_CHOICES %}
+                <option value="{{ value }}" {% if issue and issue.status == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="mb-3">
+        <label for="priority" class="form-label">Priority</label>
+        <select class="form-select" id="priority" name="priority" required>
+            {% for value, label in Issue.PRIORITY_CHOICES %}
+                <option value="{{ value }}" {% if issue and issue.priority == value %}selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+    </div>
+    <button type="submit" class="btn btn-primary">{% if issue %}Update Issue{% else %}Create Issue{% endif %}</button>
+</form>
+{% endblock %}
