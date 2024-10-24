@@ -18,13 +18,8 @@ def semantic_search(query_string: str):
 
     if query:
         # generate embedding for the search query
-        search_embedding = get_embeddings(query_string)
+        # TODO: your code here
 
         # sort issues by their embedding similarity to the query embedding
-        sorted_issues = sorted(
-            issues, 
-            key=lambda issue: cosine_similarity(search_embedding, issue.embedding),
-            reverse=False  # lower cosine distance is more similar
-        )
-
-        return sorted_issues
+        #TODO: sorted_issues = ...
+        # return sorted_issues
