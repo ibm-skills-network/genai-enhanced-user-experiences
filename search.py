@@ -23,3 +23,4 @@ def semantic_search(query_string: str):
         # sort issues by their embedding similarity to the query embedding
         #TODO: sorted_issues = ...
         # return sorted_issues
+        pass # TODO: remove 
